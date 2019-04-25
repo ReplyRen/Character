@@ -121,7 +121,7 @@ MonoBehaviour:
   m_MinSize: {x: 713, y: 498}
   m_MaxSize: {x: 18008, y: 14048}
   vertical: 0
-  controlID: 119
+  controlID: 90
 --- !u!114 &6
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -195,7 +195,7 @@ MonoBehaviour:
   m_MinSize: {x: 234, y: 498}
   m_MaxSize: {x: 10004, y: 14048}
   vertical: 1
-  controlID: 13
+  controlID: 31
 --- !u!114 &9
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -378,20 +378,20 @@ MonoBehaviour:
     m_ShowAllHits: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/prefabs
+    - Assets/Script
   m_ViewMode: 1
   m_StartGridSize: 96
   m_LastFolders:
-  - Assets/prefabs
+  - Assets/Script
   m_LastFoldersGridSize: 96
   m_LastProjectPath: F:\unity\Character
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
     scrollPos: {x: 0, y: 0}
-    m_SelectedIDs: be090000
-    m_LastClickedID: 2494
-    m_ExpandedIDs: 000000005809000000ca9a3b
+    m_SelectedIDs: f20a0000
+    m_LastClickedID: 2802
+    m_ExpandedIDs: 000000005a09000000ca9a3b
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -419,7 +419,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 0000000058090000
+    m_ExpandedIDs: 000000005a090000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -662,9 +662,9 @@ MonoBehaviour:
   m_SceneHierarchy:
     m_TreeViewState:
       scrollPos: {x: 0, y: 0}
-      m_SelectedIDs: 9afbffff
-      m_LastClickedID: -1126
-      m_ExpandedIDs: c0fbffffa00b0000f00b0000
+      m_SelectedIDs: fc0b0000
+      m_LastClickedID: 3068
+      m_ExpandedIDs: c0fbffff
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 

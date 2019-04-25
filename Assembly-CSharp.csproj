@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Script\controller.cs" />
+    <Compile Include="Assets\Script\GravitationalController.cs" />
     <Reference Include="Unity.TextMeshPro.Editor">
       <HintPath>F:/unity/Character/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
     </Reference>

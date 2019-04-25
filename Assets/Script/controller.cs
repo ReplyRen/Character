@@ -1,13 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class controller : MonoBehaviour
 {
     public float speed = 4f;
-    public bool onPlatform = false;
-    public bool onOblique30Platform = false;
     public int status = 0;
+    public float g = 9.8f;
+    private float lerp;
+    public float verticalSpeed=0f;
+    private float verticalPos;
     private  Vector3 startPos;
     private Vector3 newPos;
     private float angle;
@@ -23,6 +26,8 @@ public class controller : MonoBehaviour
     Ray2D[] rightRay;
     Ray2D[] leftRay;
 
+    public event Action<Collider2D> onTriggerEnterEvent;
+
     private void Start()
     {
         angle = 0f;
@@ -34,7 +39,7 @@ public class controller : MonoBehaviour
         h = (int)(height/ density);
         verticalStatus = 0;
     }
-    private void FixedUpdate()
+    public void FixedUpdate()
     {
         InitRay();
         newPos = transform.position;
@@ -51,11 +56,12 @@ public class controller : MonoBehaviour
     {
         DownRayDetection();
         VerticalRayDetection(deltaPos);
-        if (Input.GetKey(KeyCode.W))
+        if (Input.GetKey(KeyCode.W)&&status==0)
             status = 1;
         UpRayDetection();
-        Debug.Log(verticalStatus);
-        float lerp = newPos.y - startPos.y;
+
+        lerp = newPos.y - startPos.y;
+        verticalPos = verticalSpeed * Time.deltaTime;
         if (verticalStatus == 2 && deltaPos.x < 0)
             deltaPos.x = 0;
         if (verticalStatus == 1 && deltaPos.x > 0)
@@ -69,10 +75,16 @@ public class controller : MonoBehaviour
         }
         else if (status == 1)
         {
-            transform.position = Vector3.Lerp(transform.position, transform.position + new Vector3(deltaPos.x, 1f, 0f), speed * Time.deltaTime);
+            transform.position = Vector3.Lerp(transform.position, transform.position + new Vector3(deltaPos.x,verticalPos, 0f), speed * Time.deltaTime);
         }
         else if (status == 3)
-            transform.position = Vector3.Lerp(transform.position, transform.position + new Vector3(deltaPos.x, -1f, 0f), speed * Time.deltaTime);
+            transform.position = Vector3.Lerp(transform.position, transform.position + new Vector3(deltaPos.x, verticalPos, 0f), speed * Time.deltaTime);
+        else if (status == 2)
+        {
+            transform.position = Vector3.Lerp(transform.position, transform.position + new Vector3(deltaPos.x, transform.position.y, 0f), speed * Time.deltaTime);
+            verticalSpeed = 0f;
+            status = 3;
+        } 
     }
     public void InitRay()
     {
@@ -159,8 +171,7 @@ public class controller : MonoBehaviour
             }
             else if (upHit[i].collider.tag == "Platform"||upHit[i].collider.tag == "floor")
             {
-                status = 3;
-                Debug.Log(status);
+                status = 2;
             }
         }
     }
@@ -236,4 +247,15 @@ public class controller : MonoBehaviour
         }
         return arry[arry.Length-1];
     }
+    //private void OnTriggerEnter2D(Collider2D collision)
+    //{
+    //    if (collision.tag == "Special")
+    //        onTriggerEnterEvent += onTriggerEnterEvent(collision);
+    //    if (onTriggerEnterEvent != null)
+    //        onTriggerEnterEvent(collision);
+    //}
+    //private void onTriggerEnterEvent(Collider2D collision)
+    //{
+    //    Debug.Log("进入");
+    //}
 }
