@@ -1495,7 +1495,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 5
   status: 0
+  gNormal: 9.8
   g: 9.8
+  gSmooth: 2
   verticalSpeed: 0
   density: 0.1
 --- !u!61 &1969797119
@@ -1538,7 +1540,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 4
   status: 0
+  gNormal: 9.8
   g: 9.8
+  gSmooth: 2
   verticalSpeed: 0
   density: 0.1
 --- !u!1001 &2038869668

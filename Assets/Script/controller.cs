@@ -6,21 +6,23 @@ using System;
 public class controller : MonoBehaviour
 {
     public float speed = 4f;
-    public int status = 0;
-    public float g = 9.8f;
-    private float lerp;
-    public float verticalSpeed=0f;
-    private float verticalPos;
+    public int status = 0;//状态：0为在地面上，1为起跳，2为上方碰到物体，3为悬空
+    public float gNormal = 9.8f;//正常的重力值
+    public float g;
+    public float gSmooth = 2f;//达到最高点时的重力值
+    private float lerp;//每帧y方向的位移差
+    public float verticalSpeed=0f;//y方向的速度
+    private float verticalPos;//y方向的位置
     private  Vector3 startPos;
-    private Vector3 newPos;
-    private float angle;
-    private BoxCollider2D playercol;
-    private float lenth;
-    private float height;
-    private int l;
-    private int h;
-    private int verticalStatus;
-    public float density=0.1f;
+    private Vector3 newPos;//与上一个变量均用于计算每帧位移差
+    private float angle;//地面倾角
+    private BoxCollider2D playercol;//物体的碰撞器
+    private float lenth;//物体的长度
+    private float height;//物体的高度
+    private int l;//长度上的射线根数
+    private int h;//宽度上的射线根数
+    private int verticalStatus;//水平方向的状态
+    public float density=0.1f;//射线密度
     Ray2D[] downRay;
     Ray2D[] upRay;
     Ray2D[] rightRay;
@@ -41,50 +43,56 @@ public class controller : MonoBehaviour
     }
     public void FixedUpdate()
     {
-        InitRay();
+        InitRay();//初始化射线
         newPos = transform.position;
-        float h = Input.GetAxis("Horizontal");
+        float h = Input.GetAxis("Horizontal");//获得水平键入
         if (h < 0)
             transform.eulerAngles = new Vector3(0, 180, 0);
         if (h > 0)
-            transform.eulerAngles = new Vector3(0, 0, 0);
+            transform.eulerAngles = new Vector3(0, 0, 0);//旋转
         Vector2 movement = new Vector2(h, 0);
         Move(movement);
         startPos = newPos;
     }
     public void Move(Vector2 deltaPos)
     {
-        DownRayDetection();
-        VerticalRayDetection(deltaPos);
-        if (Input.GetKey(KeyCode.W)&&status==0)
+        DownRayDetection();//下方的射线检测
+        VerticalRayDetection(deltaPos);//水平 射线检测
+        Debug.Log(status);
+        if (Input.GetKey(KeyCode.W)&&status==0)//跳跃
             status = 1;
-        UpRayDetection();
-
+        UpRayDetection();//上方射线检测
+        Debug.Log(status);
+        if (verticalSpeed < 10 && verticalSpeed > -10)//接近最高点时平滑的速度
+            g = gSmooth;
+        else
+            g = gNormal;
         lerp = newPos.y - startPos.y;
-        verticalPos = verticalSpeed * Time.deltaTime;
+        verticalPos = verticalSpeed * Time.deltaTime;//通过速度计算下一个竖直方向的位置
         if (verticalStatus == 2 && deltaPos.x < 0)
             deltaPos.x = 0;
         if (verticalStatus == 1 && deltaPos.x > 0)
-            deltaPos.x = 0;
-        if (status == 0)
+            deltaPos.x = 0;                             //水平方向一左一右的射线检测
+        if (status == 0)//在地面上的移动
         {
             if (lerp >= 0)
                 transform.position = Vector3.Lerp(transform.position, transform.position + new Vector3(deltaPos.x * Mathf.Cos(Mathf.PI * angle / 180), Mathf.Abs(deltaPos.x) * Mathf.Sin(Mathf.PI * angle / 180), 0f), speed * Time.deltaTime);
             else if (lerp < 0)
                 transform.position = Vector3.Lerp(transform.position, transform.position + new Vector3(deltaPos.x * Mathf.Cos(Mathf.PI * angle / 180), -Mathf.Abs(deltaPos.x) * Mathf.Sin(Mathf.PI * angle / 180), 0f), speed * Time.deltaTime);
         }
-        else if (status == 1)
+        else if (status == 1)//起跳的移动
         {
             transform.position = Vector3.Lerp(transform.position, transform.position + new Vector3(deltaPos.x,verticalPos, 0f), speed * Time.deltaTime);
         }
-        else if (status == 3)
+        else if (status == 3)//悬空的移动
             transform.position = Vector3.Lerp(transform.position, transform.position + new Vector3(deltaPos.x, verticalPos, 0f), speed * Time.deltaTime);
-        else if (status == 2)
+        else if (status == 2)//上方碰到东西的移动
         {
             transform.position = Vector3.Lerp(transform.position, transform.position + new Vector3(deltaPos.x, transform.position.y, 0f), speed * Time.deltaTime);
             verticalSpeed = 0f;
             status = 3;
-        } 
+        }
+        Debug.Log(status);  
     }
     public void InitRay()
     {
@@ -132,14 +140,11 @@ public class controller : MonoBehaviour
     {
         RaycastHit2D[] downHit = new RaycastHit2D[l];
         int[] downHitStatus = new int[l];
-        int[] upHitStatus = new int[l];
-        int[] leftHitStatus = new int[h];
-        int[] rightHitStatus = new int[h];
         float[] ang = new float[l];
         int q = 0;
         for (int i = 0; i < downHit.Length; i++)
         {
-            downHit[i] = Physics2D.Linecast(downRay[i].origin, downRay[i].origin + new Vector2(0, -0.1f));
+            downHit[i] = Physics2D.Linecast(downRay[i].origin, downRay[i].origin + new Vector2(0, -0.1f/* + verticalSpeed / 1000*/));
             if (status == 0)
                 downHitStatus[i] = 0;
             if (downHit[i].collider == null)
@@ -157,14 +162,14 @@ public class controller : MonoBehaviour
             if (downHitStatus[i] == 0)
                 status = 0;
         }
-        angle = PX(ang);
+        angle = PX(ang);//挑出最大的
     }
     private void UpRayDetection()
     {
         RaycastHit2D[] upHit = new RaycastHit2D[l];
         for (int i = 0; i < upHit.Length; i++)
         {
-            upHit[i] = Physics2D.Linecast(upRay[i].origin, upRay[i].origin + new Vector2(0f, 0.1f));
+            upHit[i] = Physics2D.Linecast(upRay[i].origin, upRay[i].origin + new Vector2(0f, 0.1f/* + verticalSpeed / 500*/));
             if (upHit[i].collider == null)
             {
                 continue;
