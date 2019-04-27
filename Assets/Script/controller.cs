@@ -22,6 +22,7 @@ public class controller : MonoBehaviour
     private int l;//长度上的射线根数
     private int h;//宽度上的射线根数
     private int verticalStatus;//水平方向的状态
+    private float maxUpPos;
     public float density=0.1f;//射线密度
     Ray2D[] downRay;
     Ray2D[] upRay;
@@ -40,6 +41,7 @@ public class controller : MonoBehaviour
         l = (int)(lenth / density);
         h = (int)(height/ density);
         verticalStatus = 0;
+        maxUpPos = 100f;
     }
     public void FixedUpdate()
     {
@@ -58,28 +60,31 @@ public class controller : MonoBehaviour
     {
         DownRayDetection();//下方的射线检测
         VerticalRayDetection(deltaPos);//水平 射线检测
-        Debug.Log(status);
         if (Input.GetKey(KeyCode.W)&&status==0)//跳跃
             status = 1;
         UpRayDetection();//上方射线检测
-        Debug.Log(status);
         if (verticalSpeed < 10 && verticalSpeed > -10)//接近最高点时平滑的速度
             g = gSmooth;
         else
             g = gNormal;
         lerp = newPos.y - startPos.y;
         verticalPos = verticalSpeed * Time.deltaTime;//通过速度计算下一个竖直方向的位置
+        if (maxUpPos < verticalPos)
+        {
+            verticalPos = maxUpPos;
+        }
         if (verticalStatus == 2 && deltaPos.x < 0)
             deltaPos.x = 0;
         if (verticalStatus == 1 && deltaPos.x > 0)
-            deltaPos.x = 0;                             //水平方向一左一右的射线检测
-        if (status == 0)//在地面上的移动
+            deltaPos.x = 0;       //水平方向一左一右的射线检测  
+        if (status == 0)        //在地面上的移动
         {
             if (lerp >= 0)
                 transform.position = Vector3.Lerp(transform.position, transform.position + new Vector3(deltaPos.x * Mathf.Cos(Mathf.PI * angle / 180), Mathf.Abs(deltaPos.x) * Mathf.Sin(Mathf.PI * angle / 180), 0f), speed * Time.deltaTime);
             else if (lerp < 0)
                 transform.position = Vector3.Lerp(transform.position, transform.position + new Vector3(deltaPos.x * Mathf.Cos(Mathf.PI * angle / 180), -Mathf.Abs(deltaPos.x) * Mathf.Sin(Mathf.PI * angle / 180), 0f), speed * Time.deltaTime);
         }
+
         else if (status == 1)//起跳的移动
         {
             transform.position = Vector3.Lerp(transform.position, transform.position + new Vector3(deltaPos.x,verticalPos, 0f), speed * Time.deltaTime);
@@ -88,11 +93,10 @@ public class controller : MonoBehaviour
             transform.position = Vector3.Lerp(transform.position, transform.position + new Vector3(deltaPos.x, verticalPos, 0f), speed * Time.deltaTime);
         else if (status == 2)//上方碰到东西的移动
         {
-            transform.position = Vector3.Lerp(transform.position, transform.position + new Vector3(deltaPos.x, transform.position.y, 0f), speed * Time.deltaTime);
+            transform.position = Vector3.Lerp(transform.position, transform.position + new Vector3(deltaPos.x, -2.0f, 0f), speed * Time.deltaTime);
             verticalSpeed = 0f;
             status = 3;
         }
-        Debug.Log(status);  
     }
     public void InitRay()
     {
@@ -144,17 +148,22 @@ public class controller : MonoBehaviour
         int q = 0;
         for (int i = 0; i < downHit.Length; i++)
         {
-            downHit[i] = Physics2D.Linecast(downRay[i].origin, downRay[i].origin + new Vector2(0, -0.1f/* + verticalSpeed / 1000*/));
+            downHit[i] = Physics2D.Linecast(downRay[i].origin, downRay[i].origin + new Vector2(0, -0.1f -Mathf.Abs( verticalSpeed / 1000)));
             if (status == 0)
                 downHitStatus[i] = 0;
             if (downHit[i].collider == null)
             {
                 downHitStatus[i] = 3;
             }
-            else if (downHit[i].collider.tag == "Platform"|| downHit[i].collider.tag == "floor")
+            else if (downHit[i].collider.tag == "Platform"|| downHit[i].collider.tag == "floor"||downHit[i].collider.tag=="singleFloor")
             {
                 downHitStatus[i] = 0;
                 ang[i] = Vector2.Angle(downHit[i].normal, Vector2.up);
+            }
+            else if(downHit[i].collider.tag=="specialPlace")
+            {
+                print("进入特殊平台");
+                downHitStatus[i] = 3;
             }
             q += downHitStatus[i];
             if (q == downHitStatus.Length * 3)
@@ -167,11 +176,13 @@ public class controller : MonoBehaviour
     private void UpRayDetection()
     {
         RaycastHit2D[] upHit = new RaycastHit2D[l];
+        int upStatus = 0;
         for (int i = 0; i < upHit.Length; i++)
         {
-            upHit[i] = Physics2D.Linecast(upRay[i].origin, upRay[i].origin + new Vector2(0f, 0.1f/* + verticalSpeed / 500*/));
+            upHit[i] = Physics2D.Linecast(upRay[i].origin, upRay[i].origin + new Vector2(0f, 0.1f + Mathf.Abs( verticalSpeed / 1000)));
             if (upHit[i].collider == null)
             {
+                upStatus += 1;
                 continue;
             }
             else if (upHit[i].collider.tag == "Platform"||upHit[i].collider.tag == "floor")
@@ -179,6 +190,8 @@ public class controller : MonoBehaviour
                 status = 2;
             }
         }
+        if (upStatus == l)
+            maxUpPos = 100f;
     }
     private void VerticalRayDetection(Vector2 dir)
     {
@@ -252,15 +265,17 @@ public class controller : MonoBehaviour
         }
         return arry[arry.Length-1];
     }
-    //private void OnTriggerEnter2D(Collider2D collision)
+
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        Debug.Log(0);
+        if (collision.tag == "specialPlace")
+            Debug.Log(0);
+    }
+
+    //private Action<Collider2D> SpecialEvent(Action<Collider2D> col)
     //{
-    //    if (collision.tag == "Special")
-    //        onTriggerEnterEvent += onTriggerEnterEvent(collision);
-    //    if (onTriggerEnterEvent != null)
-    //        onTriggerEnterEvent(collision);
-    //}
-    //private void onTriggerEnterEvent(Collider2D collision)
-    //{
-    //    Debug.Log("进入");
+    //    print("进入特殊平台");
+    //    return col;
     //}
 }

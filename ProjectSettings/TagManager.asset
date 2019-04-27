@@ -10,6 +10,8 @@ TagManager:
   - Oblique60Platform
   - 20degree
   - 40degree
+  - singleFloor
+  - specialPlace
   layers:
   - Default
   - TransparentFX
